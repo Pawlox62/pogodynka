@@ -3,7 +3,6 @@
 **Autor:** Paweł Peterwas
 **E‑mail:** [s99658@pollub.edu.pl](mailto:s99658@pollub.edu.pl)
 
-Repozytorium GitHub: [https://github.com/⟨TU\_TWOJE\_REPO⟩/pogodynka](https://github.com/⟨TU_TWOJE_REPO⟩/pogodynka)
 Obraz Docker Hub: [https://hub.docker.com/r/pawloxdocker/pogodynka](https://hub.docker.com/r/pawloxdocker/pogodynka)
 
 ---
