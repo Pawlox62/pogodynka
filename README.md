@@ -174,7 +174,7 @@ docker run -d -e WEATHERAPI_KEY=$(grep WEATHERAPI_KEY .env | cut -d= -f2) \
 docker logs --tail 20 pogodynka
 ```
 
-![Screenshot](log.png)
+![Screenshot](logs.png)
 
 *Warstwy i rozmiar*
 
