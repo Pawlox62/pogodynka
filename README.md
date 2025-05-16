@@ -118,7 +118,7 @@ async def show(request: Request, country: str = Form(...), city: str = Form(...)
 ## 2  Dockerfile 
 
 ```dockerfile
-# etap 1 — budujemy koła zależności, żeby wykorzystać cache
+# etap 1 — budujemy zależności wheels, żeby wykorzystać cache
 FROM python:3.12-slim AS builder
 WORKDIR /build
 COPY requirements.txt .
@@ -130,7 +130,7 @@ LABEL org.opencontainers.image.authors="Paweł Peterwas <s99658@pollub.edu.pl>"
 ENV PYTHONUNBUFFERED=1 PORT=8000
 WORKDIR /app
 
-# instalacja zależności bezpośrednio z kół
+# instalacja zależności bezpośrednio z wheels
 COPY requirements.txt .
 COPY --from=builder /build/wheels /wheels
 RUN pip install --no-index --find-links=/wheels -r requirements.txt && rm -rf /wheels
