@@ -35,7 +35,6 @@ LOCATIONS = {
 
 # -- pobieranie pogody przez WeatherAPI.com ---------------------------------
 async def fetch_weather(city: str, country: str) -> dict:
-    # WeatherAPI przyjmuje q="miasto" lub "miasto,kraj"
     query = f"{city},{country}"
     url = (
         "https://api.weatherapi.com/v1/current.json"
