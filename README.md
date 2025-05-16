@@ -50,7 +50,7 @@ templates = Jinja2Templates(directory="templates")
 
 # — minimalna lista lokalizacji (można rozbudować) —
 LOC = {
-    "Polska": {"code": "PL", "cities": ["Warsaw", "Krakow", "Gdansk"]},
+    "Polska": {"code": "PL", "cities": ["Warszawa", "Kraków", "Gdańsk"]},
     "Niemcy": {"code": "DE", "cities": ["Berlin", "Munich", "Hamburg"]},
     "USA":    {"code": "US", "cities": ["New York", "Chicago", "San Francisco"]},
 }
