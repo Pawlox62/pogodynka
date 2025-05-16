@@ -157,7 +157,7 @@ ENTRYPOINT ["python","-m","uvicorn","app.main:app","--host","0.0.0.0","--port","
 docker build -t pawloxdocker/pogodynka:latest .
 ```
 
-![Screenshot](build.png)
+![Screenshot](images/build.png)
 
 *Uruchomienie kontenera*
 
@@ -166,7 +166,7 @@ docker run -d -e WEATHERAPI_KEY=$(grep WEATHERAPI_KEY .env | cut -d= -f2) \
   -p 8080:8000 --name pogodynka pawloxdocker/pogodynka:latest
 ```
 
-![Screenshot](run.png)
+![Screenshot](images/run.png)
 
 *Log startowy*
 
@@ -174,7 +174,7 @@ docker run -d -e WEATHERAPI_KEY=$(grep WEATHERAPI_KEY .env | cut -d= -f2) \
 docker logs --tail 20 pogodynka
 ```
 
-![Screenshot](logs.png)
+![Screenshot](images/logs.png)
 
 *Warstwy i rozmiar*
 
@@ -183,13 +183,13 @@ docker image inspect pawloxdocker/pogodynka:latest --format '{{len .RootFS.Layer
 docker images pawloxdocker/pogodynka:latest --format '{{.Size}}'
 ```
 
-![Screenshot](size.png)
+![Screenshot](images/size.png)
 
 ---
 
 ## 4  Zrzut ekranu działania
 
-![Screenshot](pogodynka1.png)
-![Screenshot](pogodynka2.png)
+![Screenshot](images/pogodynka1.png)
+![Screenshot](images/pogodynka2.png)
 
 
