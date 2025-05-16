@@ -1,0 +1,7 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Wynik</title></head>
+<body>
+<h2>Pogoda — {{ city }}, {{ country }}</h2>
+<ul>{% for k,v in weather.items() %}<li><b>{{ k }}:</b> {{ v }}</li>{% endfor %}</ul>
+<small>Ostatnia aktualizacja: {{ time }}</small><br>
+<a href="/">« Wróć</a>
+</body></html>

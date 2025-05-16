@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Pogoda</title></head>
+<body>
+<h2>Aktualna pogoda</h2>
+<form method="post" action="/pogoda">
+  <label>Kraj:
+    <select name="country" id="country" onchange="syncCities()">
+      {% for c in locations %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Miasto:
+    <select name="city" id="city"></select>
+  </label>
+  <button type="submit">Pokaż</button>
+</form>
+<script>
+  const loc={{ locations|tojson }};
+  const cSel=document.getElementById("country"), mSel=document.getElementById("city");
+  function syncCities(){mSel.innerHTML="";loc[cSel.value].forEach(
+    x=>mSel.innerHTML+=`<option value="${x}">${x}</option>`);}
+  syncCities();
+</script>
+</body></html>
