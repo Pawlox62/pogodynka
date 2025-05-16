@@ -20,13 +20,9 @@ Obraz Docker Hub: [https://hub.docker.com/r/pawloxdocker/pogodynka](https://hu
 └── Dockerfile         ← wieloetapowa budowa obrazu
 ```
 
-### app/main.py — komentarze blokowe
+### app/main.py
 
 ```python
-"""Serwer FastAPI spełniający wymagania:
-• log startowy z datą, autorem i portem (pkt 1a)
-• formularz wyboru kraju/miasta i pogoda (pkt 1b)"""
-
 # — konfiguracja i log startowy —
 from datetime import datetime
 import os, logging, httpx
@@ -35,7 +31,7 @@ from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-load_dotenv()                                 # <‑ wczytaj WEATHERAPI_KEY
+load_dotenv()   
 API_KEY = os.getenv("WEATHERAPI_KEY")
 AUTHOR  = "Paweł Peterwas"
 PORT    = 8000
@@ -47,7 +43,7 @@ logging.info("Start aplikacji | Autor: %s | PORT: %s", AUTHOR, PORT)
 app = FastAPI(title="Pogodynka")
 templates = Jinja2Templates(directory="templates")
 
-# — minimalna lista lokalizacji (można rozbudować) —
+# — minimalna lista lokalizacji —
 LOC = {
     "Polska": {"code": "PL", "cities": ["Warszawa", "Kraków", "Gdańsk"]},
     "Niemcy": {"code": "DE", "cities": ["Berlin", "Munich", "Hamburg"]},
@@ -91,7 +87,7 @@ async def show(request: Request, country: str = Form(...), city: str = Form(...)
     })
 ```
 
-### templates/form.html — komentarze blokowe
+### templates/form.html
 
 ```html
 <!-- Formularz wyboru lokalizacji -->
@@ -119,7 +115,7 @@ async def show(request: Request, country: str = Form(...), city: str = Form(...)
 
 ---
 
-## 2  Dockerfile — komentarze blokowe
+## 2  Dockerfile 
 
 ```dockerfile
 # etap 1 — budujemy koła zależności, żeby wykorzystać cache
