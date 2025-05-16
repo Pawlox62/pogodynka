@@ -141,7 +141,7 @@ COPY templates ./templates
 
 EXPOSE ${PORT}
 
-# prosty health‑check HTTP 200
+# health‑check
 HEALTHCHECK CMD ["python","-c","import http.client,os,sys; c=http.client.HTTPConnection('localhost',int(os.getenv('PORT',8000))); c.request('GET','/'); sys.exit(0) if c.getresponse().status<500 else sys.exit(1)"]
 
 ENTRYPOINT ["python","-m","uvicorn","app.main:app","--host","0.0.0.0","--port","8000"]
@@ -157,6 +157,8 @@ ENTRYPOINT ["python","-m","uvicorn","app.main:app","--host","0.0.0.0","--port","
 docker build -t pawloxdocker/pogodynka:latest .
 ```
 
+![Screenshot](build.png)
+
 *Uruchomienie kontenera*
 
 ```bash
@@ -164,11 +166,15 @@ docker run -d -e WEATHERAPI_KEY=$(grep WEATHERAPI_KEY .env | cut -d= -f2) \
   -p 8080:8000 --name pogodynka pawloxdocker/pogodynka:latest
 ```
 
+![Screenshot](run.png)
+
 *Log startowy*
 
 ```bash
 docker logs --tail 20 pogodynka
 ```
+
+![Screenshot](log.png)
 
 *Warstwy i rozmiar*
 
@@ -177,10 +183,13 @@ docker image inspect pawloxdocker/pogodynka:latest --format '{{len .RootFS.Layer
 docker images pawloxdocker/pogodynka:latest --format '{{.Size}}'
 ```
 
+![Screenshot](size.png)
+
 ---
 
 ## 4  Zrzut ekranu działania
 
-![Screenshot](pogodynka.png)
+![Screenshot](pogodynka1.png)
+![Screenshot](pogodynka2.png)
 
 
