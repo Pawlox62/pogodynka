@@ -1,3 +1,4 @@
+# .github/workflows/build-and-scan.yml
 name: Build, Scan & Publish
 
 on:
@@ -33,7 +34,7 @@ jobs:
         with:
           registry: ghcr.io
           username: pawlox62
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Build and push multi-arch image (cache + GHCR)
         uses: docker/build-push-action@v5
@@ -53,7 +54,6 @@ jobs:
             ghcr.io/pawlox62/pogodynka:latest
 
       - name: Scan remote image for CRITICAL/HIGH
-        # Trivy obsłuży skanowanie zdalne
         run: |
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
@@ -62,4 +62,4 @@ jobs:
 
       - name: Verify and finish
         if: success()
-        run: echo "Image built, scanned (no CRITICAL/HIGH) and pushed to GHCR"
+        run: echo "✅ Image built, scanned (no CRITICAL/HIGH) and pushed to GHCR"
