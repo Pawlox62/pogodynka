@@ -57,9 +57,10 @@ jobs:
         run: |
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
+            -v $HOME/.docker/config.json:/root/.docker/config.json:ro \
             aquasec/trivy:latest \
             image --severity CRITICAL,HIGH ghcr.io/pawlox62/pogodynka:${{ github.sha }}
 
       - name: Verify and finish
         if: success()
-        run: echo "✅ Image built, scanned (no CRITICAL/HIGH) and pushed to GHCR"
+        run: echo "✅ Image built, scanned (no CRITICAL/HIGH) and pushed"
