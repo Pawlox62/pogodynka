@@ -10,25 +10,29 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     steps:
+      # 1. Checkout
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2. QEMU for multi-arch
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
+      # 3. Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
           driver: docker-container
-          buildkitd-flags: --allow-insecure-entitlement network.host
 
-      - name: Log in to Docker Hub (cache)
+      # 4. Login to Docker Hub (cache)
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           registry: docker.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # 5. Login to GHCR
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -36,7 +40,8 @@ jobs:
           username: pawlox62
           password: ${{ secrets.GHCR_TOKEN }}
 
-      - name: Build and push multi-arch image (cache + GHCR)
+      # 6. Build & push multi-arch image (cache + GHCR)
+      - name: Build and push image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -53,14 +58,17 @@ jobs:
             ghcr.io/pawlox62/pogodynka:${{ github.sha }}
             ghcr.io/pawlox62/pogodynka:latest
 
-      - name: Scan remote image for CRITICAL/HIGH
-        run: |
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v $HOME/.docker/config.json:/root/.docker/config.json:ro \
-            aquasec/trivy:latest \
-            image --severity CRITICAL,HIGH ghcr.io/pawlox62/pogodynka:${{ github.sha }}
+      # 7. CVE scan with Trivy Action
+      - name: Scan image for HIGH/CRITICAL CVEs
+        uses: aquasecurity/trivy-action@v0.2.0
+        with:
+          image-ref: ghcr.io/pawlox62/pogodynka:${{ github.sha }}
+          format: table
+          exit-code: 1
+          severity: CRITICAL,HIGH
+          vuln-type: os,library
 
-      - name: Verify and finish
+      # 8. Success message
+      - name: Done
         if: success()
-        run: echo "✅ Image built, scanned (no CRITICAL/HIGH) and pushed"
+        run: echo "✅ Image built, scanned (no CRITICAL/HIGH) and pushed to GHCR"
