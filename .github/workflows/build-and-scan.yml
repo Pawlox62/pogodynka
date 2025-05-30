@@ -1,78 +1,76 @@
-# .github/workflows/build-and-scan.yml
 name: Build, Scan & Publish
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read          # wymagane do pobrania kodu
-      packages: write         # wymagane do pushu do GHCR
+      contents: read        # potrzebne do checkout
+      packages: write       # potrzebne do pushu do GHCR
 
     steps:
-      # --- checkout ----------------------------------------------------------
-      - name: Checkout code
-        uses: actions/checkout@v4
+    # --- kod ----------------------------------------------------------
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      # --- buildx / qemu -----------------------------------------------------
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+    # --- buildx -------------------------------------------------------
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver: docker-container
-          buildkitd-flags: --allow-insecure-entitlement network.host
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        driver: docker-container
+        buildkitd-flags: --allow-insecure-entitlement network.host
 
-      # --- loginy ------------------------------------------------------------
-      - name: Log in to Docker Hub (cache)
-        uses: docker/login-action@v3
-        with:
-          registry: docker.io
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+    # --- loginy -------------------------------------------------------
+    - name: Log in to Docker Hub (cache)
+      uses: docker/login-action@v3
+      with:
+        registry: docker.io
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GHCR_TOKEN }}
 
-      # --- build & push ------------------------------------------------------
-      - name: Build and push multi-arch image (cache + GHCR)
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          cache-from: |
-            type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/pogodynka-cache:buildcache
-            type=inline
-          cache-to: |
-            type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/pogodynka-cache:buildcache,mode=max
-            type=inline
-          tags: |
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
-            ghcr.io/${{ github.repository }}:latest
+    # --- budowanie ----------------------------------------------------
+    - name: Build and push multi-arch image (cache + GHCR)
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: Dockerfile
+        platforms: linux/amd64,linux/arm64
+        push: true
+        cache-from: |
+          type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/pogodynka-cache:buildcache
+          type=inline
+        cache-to: |
+          type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/pogodynka-cache:buildcache,mode=max
+          type=inline
+        tags: |
+          ghcr.io/${{ github.repository }}:${{ github.sha }}
+          ghcr.io/${{ github.repository }}:latest
 
-      # --- skan CVE ----------------------------------------------------------
-      - name: Scan image (Trivy)
-        uses: aquasecurity/trivy-action@v0.21.0
-        with:
-          image-ref: ghcr.io/${{ github.repository }}:${{ github.sha }}
-          severity: CRITICAL,HIGH        # blokujemy tylko HIGH/CRITICAL
-          exit-code: 1                   # ❗ przerwij job, jeśli znajdzie CVE
-          ignore-unfixed: true           # pomiń nierozwiązane CVE (opcjonalnie)
-          format: table                  # czytelny raport w logach
-          vuln-type: os,library          # skanuj pakiety systemowe i Pythona
-          timeout: 10m
+    # --- skan CVE -----------------------------------------------------
+    - name: Scan image (Trivy)
+      uses: aquasecurity/trivy-action@0.30.0   # <-- bez „v”, najnowsza wersja
+      with:
+        image-ref: ghcr.io/${{ github.repository }}:${{ github.sha }}
+        severity: CRITICAL,HIGH
+        exit-code: 1          # przerwij workflow, jeśli znajdzie HIGH/CRITICAL
+        ignore-unfixed: true  # (opcjonalnie) pomija CVE bez łatki
+        format: table
+        vuln-type: os,library
+        timeout: 10m
 
-      # --- sukces ------------------------------------------------------------
-      - name: Verify and finish
-        run: echo "✅ Image built, scanned (no CRITICAL/HIGH) and pushed"
+    # --- sukces -------------------------------------------------------
+    - name: Verify and finish
+      run: echo "✅ Image built, scanned (no CRITICAL/HIGH) and pushed"
