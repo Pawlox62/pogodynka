@@ -69,8 +69,8 @@ jobs:
           -v $HOME/.docker/config.json:/root/.docker/config.json:ro \
           aquasec/trivy:latest image \
             --severity CRITICAL,HIGH \
-            --exit-code 1 \        # ❗ przerwij job, jeśli znajdzie HIGH/CRITICAL
-            --ignore-unfixed \     # (opcjonalnie) pomiń CVE bez łatki
+            --exit-code 1 \
+            --ignore-unfixed \
             --no-progress \
             ghcr.io/pawlox62/pogodynka:${{ github.sha }}
 
