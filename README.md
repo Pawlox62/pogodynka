@@ -91,7 +91,7 @@ permissions:
 | `ghcr.io/pawlox62/pogodynka:latest`             | Wskazuje na najnowsze udane buildy z gałęzi `main` | Ułatwia „domyślny” pull w środowiskach testowych                  |
 | `docker.io/<<user>>/pogodynka-cache:buildcache` | Warstwy Buildx                                     | Dzielona pamięć podręczna dla wszystkich architektur → szybsze CI |
 
-Inspiracja: oficjalna dokumentacja Docker Buildx + praktyka odciśnięcia SHA (immutable). 
+Inspiracja: oficjalna dokumentacja Docker Buildx + tagowanie obrazów skrótem SHA commit. 
 
 ---
 
