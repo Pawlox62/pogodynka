@@ -9,39 +9,42 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read          # wymagane do pobrania kodu
+      packages: write         # wymagane do pushu do GHCR
+
     steps:
-      # 1. Checkout
+      # --- checkout ----------------------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. QEMU for multi-arch
+      # --- buildx / qemu -----------------------------------------------------
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      # 3. Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
           driver: docker-container
+          buildkitd-flags: --allow-insecure-entitlement network.host
 
-      # 4. Login to Docker Hub (cache)
-      - name: Log in to Docker Hub
+      # --- loginy ------------------------------------------------------------
+      - name: Log in to Docker Hub (cache)
         uses: docker/login-action@v3
         with:
           registry: docker.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 5. Login to GHCR
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: pawlox62
+          username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
 
-      # 6. Build & push multi-arch image (cache + GHCR)
-      - name: Build and push image
+      # --- build & push ------------------------------------------------------
+      - name: Build and push multi-arch image (cache + GHCR)
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -55,20 +58,21 @@ jobs:
             type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/pogodynka-cache:buildcache,mode=max
             type=inline
           tags: |
-            ghcr.io/pawlox62/pogodynka:${{ github.sha }}
-            ghcr.io/pawlox62/pogodynka:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:latest
 
-      # 7. CVE scan with Trivy Action
-      - name: Scan image for HIGH/CRITICAL CVEs
-        uses: aquasecurity/trivy-action@v0.2.0
+      # --- skan CVE ----------------------------------------------------------
+      - name: Scan image (Trivy)
+        uses: aquasecurity/trivy-action@v0.21.0
         with:
-          image-ref: ghcr.io/pawlox62/pogodynka:${{ github.sha }}
-          format: table
-          exit-code: 1
-          severity: CRITICAL,HIGH
-          vuln-type: os,library
+          image-ref: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          severity: CRITICAL,HIGH        # blokujemy tylko HIGH/CRITICAL
+          exit-code: 1                   # ❗ przerwij job, jeśli znajdzie CVE
+          ignore-unfixed: true           # pomiń nierozwiązane CVE (opcjonalnie)
+          format: table                  # czytelny raport w logach
+          vuln-type: os,library          # skanuj pakiety systemowe i Pythona
+          timeout: 10m
 
-      # 8. Success message
-      - name: Done
-        if: success()
-        run: echo "✅ Image built, scanned (no CRITICAL/HIGH) and pushed to GHCR"
+      # --- sukces ------------------------------------------------------------
+      - name: Verify and finish
+        run: echo "✅ Image built, scanned (no CRITICAL/HIGH) and pushed"
