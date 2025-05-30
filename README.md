@@ -98,7 +98,7 @@ Inspiracja: oficjalna dokumentacja Docker Buildx + praktyka odciśnięcia SHA 
 ## 6. Wynik przykładowego uruchomienia
 
 <details>
-<summary>Logi Trivy – 0 Vuln HIGH/CRITICAL (commit 013fb2d)</summary>
+<summary>Logi Trivy – 0 Vuln HIGH/CRITICAL</summary>
 
 ```
 Total: 0 (HIGH: 0, CRITICAL: 0)
