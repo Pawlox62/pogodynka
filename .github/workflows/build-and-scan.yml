@@ -1,3 +1,4 @@
+# .github/workflows/build-and-scan.yml
 name: Build, Scan & Publish
 
 on:
@@ -7,16 +8,21 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+
+    # ✅ jedno miejsce, w którym definiujemy poprawną ścieżkę obrazu
+    env:
+      IMAGE: ghcr.io/${{ toLower(github.repository) }}
+
     permissions:
-      contents: read        # potrzebne do checkout
-      packages: write       # potrzebne do pushu do GHCR
+      contents: read
+      packages: write
 
     steps:
-    # --- kod ----------------------------------------------------------
+    # --- kod -----------------------------------------------------------------
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # --- buildx -------------------------------------------------------
+    # --- buildx / qemu -------------------------------------------------------
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
@@ -26,7 +32,7 @@ jobs:
         driver: docker-container
         buildkitd-flags: --allow-insecure-entitlement network.host
 
-    # --- loginy -------------------------------------------------------
+    # --- loginy --------------------------------------------------------------
     - name: Log in to Docker Hub (cache)
       uses: docker/login-action@v3
       with:
@@ -41,7 +47,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GHCR_TOKEN }}
 
-    # --- budowanie ----------------------------------------------------
+    # --- build & push --------------------------------------------------------
     - name: Build and push multi-arch image (cache + GHCR)
       uses: docker/build-push-action@v5
       with:
@@ -56,21 +62,21 @@ jobs:
           type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/pogodynka-cache:buildcache,mode=max
           type=inline
         tags: |
-          ghcr.io/${{ github.repository }}:${{ github.sha }}
-          ghcr.io/${{ github.repository }}:latest
+          ${{ env.IMAGE }}:${{ github.sha }}
+          ${{ env.IMAGE }}:latest
 
-    # --- skan CVE -----------------------------------------------------
+    # --- skan CVE ------------------------------------------------------------
     - name: Scan image (Trivy)
-      uses: aquasecurity/trivy-action@0.30.0   # <-- bez „v”, najnowsza wersja
+      uses: aquasecurity/trivy-action@0.30.0   # bez „v” w nazwie
       with:
-        image-ref: ghcr.io/${{ github.repository }}:${{ github.sha }}
+        image-ref: ${{ env.IMAGE }}:${{ github.sha }}
         severity: CRITICAL,HIGH
-        exit-code: 1          # przerwij workflow, jeśli znajdzie HIGH/CRITICAL
-        ignore-unfixed: true  # (opcjonalnie) pomija CVE bez łatki
+        exit-code: 1
+        ignore-unfixed: true
         format: table
         vuln-type: os,library
         timeout: 10m
 
-    # --- sukces -------------------------------------------------------
+    # --- sukces --------------------------------------------------------------
     - name: Verify and finish
       run: echo "✅ Image built, scanned (no CRITICAL/HIGH) and pushed"
