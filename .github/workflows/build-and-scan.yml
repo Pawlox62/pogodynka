@@ -1,5 +1,5 @@
 # .github/workflows/build-and-scan.yml
-name: Build, Scan & Publish
+name: Build, Scan, Publish
 
 on:
   push:
@@ -10,15 +10,13 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read      # checkout
-      packages: write     # push do GHCR
+      contents: read
+      packages: write
 
     steps:
-    # --- źródła -------------------------------------------------------
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # --- Buildx -------------------------------------------------------
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
@@ -28,8 +26,7 @@ jobs:
         driver: docker-container
         buildkitd-flags: --allow-insecure-entitlement network.host
 
-    # --- loginy -------------------------------------------------------
-    - name: Log in to Docker Hub (cache)
+    - name: Log in to Docker Hub
       uses: docker/login-action@v3
       with:
         registry: docker.io
@@ -43,8 +40,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GHCR_TOKEN }}
 
-    # --- budowanie ----------------------------------------------------
-    - name: Build and push multi-arch image (cache + GHCR)
+    - name: Build and push multi-arch image
       uses: docker/build-push-action@v5
       with:
         context: .
@@ -61,7 +57,6 @@ jobs:
           ghcr.io/pawlox62/pogodynka:${{ github.sha }}
           ghcr.io/pawlox62/pogodynka:latest
 
-    # --- skan CVE -----------------------------------------------------
     - name: Scan remote image for CRITICAL/HIGH
       run: |
         docker run --rm \
@@ -76,4 +71,4 @@ jobs:
 
     # --- sukces -------------------------------------------------------
     - name: Verify and finish
-      run: echo "✅ Image built, scanned (no CRITICAL/HIGH) and pushed"
+      run: echo "Image built, scanned (no CRITICAL/HIGH) and pushed"

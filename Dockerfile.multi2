@@ -1,22 +1,22 @@
 # syntax=docker/dockerfile:1.4
-# ─────────────────────────────────────────────────────────
+# -------------------------------
 FROM python:3.12-alpine AS builder
 WORKDIR /build
 
-# ✚ aktualizacja bazy apk (good practice)
+# ------------------------------
 RUN apk add --no-cache build-base  # jeżeli potrzebne do kompilacji wheels
 
 COPY requirements.txt .
 RUN pip install --upgrade pip \
  && pip wheel -r requirements.txt -w wheels
 
-# ─────────────────────────────────────────────────────────
+# -----------------------------------
 FROM python:3.12-alpine
 LABEL org.opencontainers.image.authors="Paweł Peterwas <s99658@pollub.edu.pl>"
 ENV PYTHONUNBUFFERED=1 PORT=8000
 WORKDIR /app
 
-# ✚ aktualizacja apk w finalnym stage
+# ---------------------------------
 RUN apk add --no-cache --upgrade \
  && rm -rf /var/cache/apk/*
 

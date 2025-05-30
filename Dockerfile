@@ -1,24 +1,22 @@
 # syntax=docker/dockerfile:1.4
-# ─────────────────────────────────────────────────────────
+# ------------------------------
 FROM python:3.12-slim AS builder
 WORKDIR /build
 
-# ✚ wszystkie security-fixy z Debiana (usuwa CVE-2025-4598)
 RUN apt-get update \
  && apt-get dist-upgrade -y --no-install-recommends \
  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# budujemy wheel-cache
 COPY requirements.txt .
 RUN pip install --upgrade pip \
  && pip wheel -r requirements.txt -w wheels
 
-# ─────────────────────────────────────────────────────────
+# -----------------------------
 FROM python:3.12-slim
 ENV PYTHONUNBUFFERED=1 PORT=8000
 WORKDIR /app
 
-# ✚ update security-fixy również w stage finalnym
+# ----------------------------
 RUN apt-get update \
  && apt-get dist-upgrade -y --no-install-recommends \
  && apt-get clean && rm -rf /var/lib/apt/lists/*
