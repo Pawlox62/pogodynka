@@ -3,26 +3,22 @@ name: Build, Scan & Publish
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-
-    # ✅ jedno miejsce, w którym definiujemy poprawną ścieżkę obrazu
-    env:
-      IMAGE: ghcr.io/${{ toLower(github.repository) }}
-
     permissions:
-      contents: read
-      packages: write
+      contents: read      # checkout
+      packages: write     # push do GHCR
 
     steps:
-    # --- kod -----------------------------------------------------------------
+    # --- źródła -------------------------------------------------------
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # --- buildx / qemu -------------------------------------------------------
+    # --- Buildx -------------------------------------------------------
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
@@ -32,7 +28,7 @@ jobs:
         driver: docker-container
         buildkitd-flags: --allow-insecure-entitlement network.host
 
-    # --- loginy --------------------------------------------------------------
+    # --- loginy -------------------------------------------------------
     - name: Log in to Docker Hub (cache)
       uses: docker/login-action@v3
       with:
@@ -47,7 +43,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GHCR_TOKEN }}
 
-    # --- build & push --------------------------------------------------------
+    # --- budowanie ----------------------------------------------------
     - name: Build and push multi-arch image (cache + GHCR)
       uses: docker/build-push-action@v5
       with:
@@ -62,21 +58,22 @@ jobs:
           type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/pogodynka-cache:buildcache,mode=max
           type=inline
         tags: |
-          ${{ env.IMAGE }}:${{ github.sha }}
-          ${{ env.IMAGE }}:latest
+          ghcr.io/pawlox62/pogodynka:${{ github.sha }}
+          ghcr.io/pawlox62/pogodynka:latest
 
-    # --- skan CVE ------------------------------------------------------------
-    - name: Scan image (Trivy)
-      uses: aquasecurity/trivy-action@0.30.0   # bez „v” w nazwie
-      with:
-        image-ref: ${{ env.IMAGE }}:${{ github.sha }}
-        severity: CRITICAL,HIGH
-        exit-code: 1
-        ignore-unfixed: true
-        format: table
-        vuln-type: os,library
-        timeout: 10m
+    # --- skan CVE -----------------------------------------------------
+    - name: Scan remote image for CRITICAL/HIGH
+      run: |
+        docker run --rm \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -v $HOME/.docker/config.json:/root/.docker/config.json:ro \
+          aquasec/trivy:latest image \
+            --severity CRITICAL,HIGH \
+            --exit-code 1 \        # ❗ przerwij job, jeśli znajdzie HIGH/CRITICAL
+            --ignore-unfixed \     # (opcjonalnie) pomiń CVE bez łatki
+            --no-progress \
+            ghcr.io/pawlox62/pogodynka:${{ github.sha }}
 
-    # --- sukces --------------------------------------------------------------
+    # --- sukces -------------------------------------------------------
     - name: Verify and finish
       run: echo "✅ Image built, scanned (no CRITICAL/HIGH) and pushed"
