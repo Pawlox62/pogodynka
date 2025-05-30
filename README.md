@@ -89,7 +89,7 @@ permissions:
 | ----------------------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------- |
 | `ghcr.io/pawlox62/pogodynka:${{ github.sha }}`  | Niezmienny identyfikator konkretnego commita       | Pełna powtarzalność, łatwy rollback                               |
 | `ghcr.io/pawlox62/pogodynka:latest`             | Wskazuje na najnowsze udane buildy z gałęzi `main` | Ułatwia „domyślny” pull w środowiskach testowych                  |
-| `docker.io/pawloxdocker/pogodynka-cache:buildcache` | Warstwy Buildx                                     | Dzielona pamięć podręczna dla wszystkich architektur → szybsze CI |
+| `docker.io/pawloxdocker/pogodynka-cache:buildcache` | Warstwy Buildx                                     | Dzielona pamięć podręczna dla wszystkich architektur -> szybsze CI |
 
 Inspiracja: oficjalna dokumentacja Docker Buildx + tagowanie obrazów skrótem SHA commit. 
 
